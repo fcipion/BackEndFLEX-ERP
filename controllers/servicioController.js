@@ -93,14 +93,14 @@ const registro_orden_servicio = async function (req, res) {
 const uploadFileRegisterOrderService = async function (req, res) {
     if (!req.user) return res.status(500).send({ message: 'NoAccess' });
 
-    const { id, detailId } = req.params
-    const order = await Orden_Servicio.findOne({ _id: ObjectId(id) });
-    if(!order) return res.status(500).json({message: "service order not foud"})
+    const { orderId, detailId } = req.params
+    const order = await Orden_Servicio.findOne({ _id: ObjectId(orderId) });
+    if (!order) return res.status(500).json({ message: "service order not foud" })
 
     const files = req.files
     const file = files.file
     const tempPath = file.path;
-    const targetDir = path.join(__dirname, '../uploads/order-service', id);
+    const targetDir = path.join(__dirname, '../uploads/order-service', orderId);
     const fileName = `${new Date().getTime()}-${file.name}`
     const targetPath = path.join(targetDir, fileName);
 
@@ -110,31 +110,37 @@ const uploadFileRegisterOrderService = async function (req, res) {
 
     const readStream = fs.createReadStream(tempPath);
     const writeStream = fs.createWriteStream(targetPath);
-    
+
     readStream.on('error', () => {
-        return res.status(500).json({message: "Error moving file"})
+        return res.status(500).json({ message: "Error moving file" })
     });
 
     writeStream.on('error', () => {
-        return res.status(500).json({message: "Error moving file"})
+        return res.status(500).json({ message: "Error moving file" })
     });
 
     writeStream.on('finish', async () => {
-        fs.unlinkSync(tempPath); 
+        fs.unlinkSync(tempPath);
 
         order.detalles.map((d) => {
-            if(d.uuid == detailId){
-                if(!Array.isArray(d.galeria)){
+            if (d.uuid == detailId) {
+                if (!Array.isArray(d.galeria)) {
                     d.galeria = []
                 }
 
-                d.galeria.push(fileName)
+                d.galeria.push({
+                    src: `/obtener_orden_servicio_img/${orderId}/${fileName}`,
+                    name: file.name,
+                    size: file.size
+                })
+
+
             }
             return d
         })
 
         await Orden_Servicio.findOneAndUpdate(
-            { _id: ObjectId(id) },
+            { _id: ObjectId(orderId) },
             order,
             { returnOriginal: false }
         );
@@ -310,18 +316,16 @@ const actualizar_orden_servicio = async function (req, res) {
 }
 
 const obtener_orden_servicio_img = async function (req, res) {
-    var img = req.params['img'];
+    const {orderId, img} = req.params
+    const _path = './uploads/order-service'
+    const pathImg = `${_path}/${orderId}/${img}`
 
-    fs.stat('./uploads/imagenes/' + img, function (err) {
-        console.log(err);
-        if (!err) {
-            let path_img = './uploads/imagenes/' + img;
-            res.status(200).sendFile(path.resolve(path_img));
+    fs.stat(pathImg, function (err) {
+        if(err){
+            return  res.status(200).sendFile(path.resolve('./uploads/default.jpg'));
         }
-        else {
-            let path_img = './uploads/default.jpg';
-            res.status(200).sendFile(path.resolve(path_img));
-        }
+       
+        res.status(200).sendFile(path.resolve(pathImg));
     })
 }
 
