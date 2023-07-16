@@ -259,7 +259,14 @@ const listar_doctor = async function(req, res){
 
                 let filtro = req.params['filtro'];
 
-                let reg = await Doctor.find({ compania: req.user.compania, descripcion: new RegExp(filtro, 'i')}).populate("tipo_documento");
+                let reg = await Doctor.find({ 
+                    compania: req.user.compania, 
+                    $or: [
+                            {descripcion: new RegExp(filtro, 'i')}, 
+                            {nombre: new RegExp(filtro, 'i')}
+                        ]
+                    }).populate("tipo_documento");
+                    
                 if (reg) {
                     if (config_table) {
                         res.status(200).send({ columns: config_table.columns, rows: reg });

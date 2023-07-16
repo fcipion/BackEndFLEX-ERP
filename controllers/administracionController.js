@@ -283,12 +283,12 @@ const eliminar_sucursal = async function (req, res) {
             if (accesos && accesos.acceso[0].delete == true) {
                 var id = req.params['id'];
 
-                //let reg = await Sucursal.findByIdAndRemove({ _id: id });
+                let reg = await Sucursal.findByIdAndRemove(id);
+                if(!reg) return res.status(500).send({ data: 'No se puede eliminar la sucursal' });
 
-                //Log de eliminar
-                //LogController.log_delete("sucursales", req.user.sub, req.user.compania, reg._id);
-
-                res.status(200).send({ data: 'No se puede eliminar la sucursal' });
+                // Log de eliminar
+                LogController.log_delete("sucursales", req.user.sub, req.user.compania, reg._id);
+                res.send({ data: reg })
             }
             else {
                 res.status(500).send({ message: 'NoAccess' });

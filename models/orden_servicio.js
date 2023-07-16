@@ -29,7 +29,7 @@ var ordenServicioShema = Schema({
     fecha_contabilizacion: {type: Date, default: Date.now, require:true},
     fecha_vencimiento: {type: Date, default: Date.now, require:true},
     fecha_compromiso: {type: Date, default: Date.now, require:true},
-    comentarios: {type: String, required: true}, 
+    comentarios: {type: String, required: false}, 
     detalles: [ordenServicioDetalleShema],
     estatus: {type: Boolean, required: true},
     createdAt: {type: Date, default: Date.now, require:true},

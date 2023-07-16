@@ -7,7 +7,6 @@ var secret = 'alexguzman';
 exports.auth = function(req, res, next){
     if(!req.headers.authorization)
     {
-        console.log("No debio entrar");
         return res.status(403).send({message: 'NoHeadersError'});
     }
 

@@ -522,39 +522,35 @@ const consultar_cedula = async function (req, res) {
             //Leer parametro de cedula
             let cedula = req.params['cedula'];
 
-            let cliente = await Cliente.findOne({ documento: cedula });
-            if (cliente != null) {
-                res.status(200).send({ data: cliente });
-            }
-            else {
+            const url = 'https://api.adamix.net/apec/cedula/'+cedula;
 
-                const url = 'https://api.adamix.net/apec/cedula/'+cedula;
+            https.get(url, (response) => {
+            let data = '';
 
-                https.get(url, (response) => {
-                let data = '';
+            response.on('data', (chunk) => {
+                data += chunk;
+            });
 
-                response.on('data', (chunk) => {
-                    data += chunk;
-                });
+            response.on('end', () => {
+                const result = JSON.parse(data);
+                if(!result.ok) return res.status(500).json({ error: { message: "Documento no encontrado." }})
+                
+                let clienteObj = {
+                    // nombre: result.Nombres + ' ' + result.Apellido1 + ' ' + result.Apellido2,
+                    nombre: `${result.Nombres || ""}${result.Apellido1 ? ` ${result.Apellido1}`: ""}${result.Apellido2 ? ` ${result.Apellido2}`: ""}`,
+                    fecha_nacimiento: result.FechaNacimiento,
+                    lugar_nacimiento: result.LugarNacimiento,
+                    genero: result.IdSexo,
+                    estado_civil: result.IdEstadoCivil,
+                    foto: result.foto,
+                    documento: result.Cedula,
+                }
+                res.status(200).send({ data: clienteObj });
+            });
 
-                response.on('end', () => {
-                    const result = JSON.parse(data);
-                    let clienteObj = {
-                        nombre: result.Nombres + ' ' + result.Apellido1 + ' ' + result.Apellido2,
-                        fecha_nacimiento: result.FechaNacimiento,
-                        lugar_nacimiento: result.LugarNacimiento,
-                        genero: result.IdSexo,
-                        estado_civil: result.IdEstadoCivil,
-                        foto: result.foto,
-                        documento: result.Cedula,
-                    }
-                    res.status(200).send({ data: clienteObj });
-                });
-
-                }).on('error', (error) => {
-                console.error(error);
-                })
-            }
+            }).on('error', (error) => {
+            console.error(error);
+            })
         }
     }
     catch (error) {
