@@ -19,7 +19,7 @@ var Rol_Aceeso = require('../models/rol_acceso');
 var Doctor = require('../models/doctor');
 var LogController = require('../controllers/generalController');
 var Config_View_Table = require('../models/config_view_table');
-const { sendMessage } = require("../provider/sendgrid");
+const { sendMessage } = require("../provider/nodemailer");
 const { v4 } = require("uuid")
 var bcrypt = require('bcrypt-nodejs');
 
@@ -52,9 +52,6 @@ const sendMessageDoctor = async (doctorId, orderId) => {
 
         if (!order) return
         let doctor = await Doctor.findOne({ _id: ObjectId(doctorId) });
-
-        // TMP
-        doctor && (doctor.email = "fotewow216@meogl.com")
 
         if (!doctor || !doctor.email) return
 
